@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:paourtest/data/domain/books_model.dart';
 
@@ -31,7 +32,10 @@ class ExpandableContainerState extends State<ExpandableContainer> {
                 itemBuilder: (context, index) => ListTile(
                   leading: SizedBox(
                     width: 50,
-                    child: Image.network(widget.book.url ?? ""),
+                    child: CachedNetworkImage(
+                      imageUrl: widget.book.url ?? "",
+                      errorWidget: (context, url, error) => Image.asset("assets/img/placeholder.png"),
+                    ),
                   ),
                   title: Text('Item ${index + 1}'),
                 ),

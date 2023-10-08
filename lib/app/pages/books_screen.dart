@@ -17,14 +17,17 @@ class BookScreen extends ConsumerStatefulWidget {
 }
 
 class _BookScreenState extends ConsumerState<BookScreen> {
+  String? selectedSubject;
+  String? selectedLevel;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) async {
-        await ref.read(lessonController.notifier).fetchInitialBooks();
-      },
-    );
+    initBooks();
+  }
+
+  initBooks() async {
+    await ref.read(lessonController.notifier).fetchInitialBooks();
   }
 
   @override
@@ -43,6 +46,41 @@ class _BookScreenState extends ConsumerState<BookScreen> {
                 bookState.loading
                     ? const CircularProgressIndicator()
                     : Column(children: [
+                        DropdownButton<String>(
+                          hint: Text(selectedSubject ?? 'sujet'),
+                          onChanged: (value) async {
+                            setState(() {
+                              selectedSubject = value;
+                            });
+                            await ref
+                                .read(lessonController.notifier)
+                                .fetchBooksByFilter(subject: value, level: selectedLevel);
+                          },
+                          items: bookState.subjects.map((subject) {
+                            return DropdownMenuItem<String>(
+                              value: subject,
+                              child: Text(subject),
+                            );
+                          }).toList(),
+                        ),
+                        DropdownButton<String>(
+                          hint: Text(selectedLevel ?? 'niveau'),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedLevel = value;
+                            });
+                            ref
+                                .read(lessonController.notifier)
+                                .fetchBooksByFilter(level: value, subject: selectedSubject);
+                          },
+                          items: bookState.levels.map((level) {
+                            return DropdownMenuItem<String>(
+                              value: level,
+                              child: Text(level),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 20),
                         ...bookState.books
                             .map(
                               (book) => Column(
@@ -71,7 +109,7 @@ class _BookScreenState extends ConsumerState<BookScreen> {
                                             }
                                           },
                                           child: CachedNetworkImage(
-                                            imageUrl: book.url ?? "",
+                                            imageUrl: book.url ?? "assets/img/placeholder.png",
                                             height: 140,
                                             width: double.infinity,
                                             fit: BoxFit.cover,
@@ -148,7 +186,7 @@ class _ChapterViewState extends State<ChapterView> {
         child: Column(
           children: [
             CachedNetworkImage(
-              imageUrl: widget.book.url ?? "",
+              imageUrl: widget.book.url ?? "assets/img/placeholder.png",
               height: 140,
               width: double.infinity,
               fit: BoxFit.cover,
